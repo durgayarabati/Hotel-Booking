@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import {assets} from '../assets/assets';
 import { useClerk, useUser,UserButton } from '@clerk/clerk-react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useState,useEffect } from 'react';
 
 const BookIcon=()=>(
     <svg className="w-4 h-4 text-gray-700" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" >
@@ -20,22 +21,25 @@ const Navbar = () => {
 
     
 
-    const [isScrolled, setIsScrolled] = React.useState(false);
-    const [isMenuOpen, setIsMenuOpen] = React.useState(false);
+    //const [isScrolled, setIsScrolled] = useState(false);
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [scrollY, setScrollY] = useState(window.scrollY);
 
     const {openSignIn}=useClerk();
     const {user}=useUser();
     const navigate=useNavigate();
     const Location=useLocation();
 
-    React.useEffect(() => {
-        const handleScroll = () => {
-            setIsScrolled(window.scrollY > 0);
-        };
-        window.addEventListener("scroll", handleScroll);
-        return () => window.removeEventListener("scroll", handleScroll);
-    }, []);
+   useEffect(() => {
+    const handleScroll = () => {
+      setScrollY(window.scrollY);
+    };
 
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+    
+const isScrolled = location.pathname !== '/' ? true : scrollY > 10;
     return (
             <nav className={`fixed top-0 left-0  w-full flex items-center justify-between px-4 md:px-16 lg:px-24 xl:px-32 transition-all duration-500 z-50 ${isScrolled ? "bg-white/80 shadow-md text-gray-700 backdrop-blur-lg py-3 md:py-4" : "py-4 md:py-6"}`}>
 
@@ -52,7 +56,8 @@ const Navbar = () => {
                             <div className={`${isScrolled ? "bg-gray-700" : "bg-white"} h-0.5 w-0 group-hover:w-full transition-all duration-300`} />
                         </a>
                     ))}
-                    <button className={`border px-4 py-1 text-sm font-light rounded-full cursor-pointer ${isScrolled ? 'text-black' : 'text-white'} transition-all`}>
+                    <button className={`border px-4 py-1 text-sm font-light rounded-full cursor-pointer
+                         ${isScrolled ? 'text-black' : 'text-white'} transition-all`} onClick={()=>navigate('/owner')}>
                         DashBoard
                     </button>
                 </div>
@@ -78,6 +83,14 @@ const Navbar = () => {
 
                 {/* Mobile Menu Button */}
                 <div className="flex items-center gap-3 md:hidden">
+                {user && 
+                (<UserButton>
+                        <UserButton.MenuItems>
+                            <UserButton.Action label='My Bookings' labelIcon={<BookIcon/>} 
+                            onClick={() =>navigate('/my-bookings')}/>
+                        </UserButton.MenuItems>
+                     </UserButton>)}
+                
                     <img src={assets.menuIcon} onClick={() => setIsMenuOpen(!isMenuOpen)} alt=""
                      className={`${isScrolled ? "invert" : ""} h-4 cursor-pointer`}/>
                 </div>
@@ -94,13 +107,14 @@ const Navbar = () => {
                         </a>
                     ))}
 
-                    <button className="border px-4 py-1 text-sm font-light rounded-full cursor-pointer transition-all">
+                    {user && <button className="border px-4 py-1 text-sm font-light rounded-full 
+                    cursor-pointer transition-all" onClick={()=>navigate('/owner')}>
                         Dashboard
-                    </button>
+                    </button>}
 
-                    <button onClick={()=>openSignIn()} className="bg-black text-white px-8 py-2.5 rounded-full transition-all duration-500">
+                    {!user && <button onClick={()=>openSignIn()} className="bg-black text-white px-8 py-2.5 rounded-full transition-all duration-500">
                         Login
-                    </button>
+                    </button>}
                 </div>
             </nav>
         
